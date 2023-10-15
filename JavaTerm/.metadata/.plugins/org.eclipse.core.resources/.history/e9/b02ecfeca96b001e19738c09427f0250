@@ -144,11 +144,13 @@ public class JTerm extends JFrame {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             publish(line);
+                            System.out.println(line);
                         }
                     }
                     runningProcess.waitFor();
                 } catch (IOException | InterruptedException e) {
                     publish("Error executing the command: " + e.getMessage());
+                    System.out.println("Error executing the command: " + e.getMessage());
                 }
                 return null;
             }
@@ -199,13 +201,11 @@ public class JTerm extends JFrame {
     class ConsoleAndSwingOutputStream extends OutputStream {
         @Override
         public void write(int b) throws IOException {
-            SwingUtilities.invokeLater(() -> {
-                textArea.append(String.valueOf((char) b));
-                textArea.setCaretPosition(textArea.getDocument().getLength());
-            });
+            textArea.append(String.valueOf((char) b));
+            textArea.setCaretPosition(textArea.getDocument().getLength());
+            systemOut.write(b);
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
