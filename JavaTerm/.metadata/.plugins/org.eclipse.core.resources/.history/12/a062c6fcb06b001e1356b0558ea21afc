@@ -6,8 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class JTerm extends JFrame {
-    private static final long serialVersionUID = 1L;
-	private JTextArea textArea;
+    private JTextArea textArea;
     private JTextField commandInput;
     private PrintStream systemOut;
     private JButton killButton;
@@ -38,7 +37,10 @@ public class JTerm extends JFrame {
 
         systemOut = System.out;
 
+        // Set UTF-8 encoding for System.out and System.err
         System.setOut(new PrintStream(new ConsoleAndSwingOutputStream()));
+        System.setErr(new PrintStream(new ConsoleAndSwingOutputStream()));
+
         System.out.println("Welcome To JTerm :3");
 
         JPanel buttonPanel = new JPanel(new GridBagLayout());
@@ -121,6 +123,7 @@ public class JTerm extends JFrame {
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.setOut(systemOut);
+                System.setErr(systemOut);
             }
         });
     }
@@ -198,15 +201,21 @@ public class JTerm extends JFrame {
     }
 
     class ConsoleAndSwingOutputStream extends OutputStream {
+        private final String charsetName = "UTF-8"; // Use UTF-8 encoding
+
         @Override
         public void write(int b) throws IOException {
             SwingUtilities.invokeLater(() -> {
-                textArea.append(String.valueOf((char) b));
-                textArea.setCaretPosition(textArea.getDocument().getLength());
+                try {
+                    textArea.append(new String(new byte[] {(byte) b}, charsetName));
+                    textArea.setCaretPosition(textArea.getDocument().getLength());
+                } catch (UnsupportedEncodingException e) {
+                    // Handle the encoding exception as needed
+                    e.printStackTrace();
+                }
             });
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

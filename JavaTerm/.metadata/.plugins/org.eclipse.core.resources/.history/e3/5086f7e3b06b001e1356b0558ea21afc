@@ -6,8 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class JTerm extends JFrame {
-    private static final long serialVersionUID = 1L;
-	private JTextArea textArea;
+    private JTextArea textArea;
     private JTextField commandInput;
     private PrintStream systemOut;
     private JButton killButton;
