@@ -207,6 +207,7 @@ public class JTerm extends JFrame {
         }
     }
 
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JTerm runner = new JTerm();
