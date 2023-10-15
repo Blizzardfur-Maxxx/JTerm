@@ -1,0 +1,213 @@
+package com.blizzardfur.jterm;
+
+import javax.swing.*;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.SwingWorker;
+
+public class JTerm extends JFrame {
+    private JTextArea textArea;
+    private JTextField commandInput;
+    private PrintStream systemOut;
+    private JButton killButton;
+    private JButton clearButton;
+    private JButton yesButton;
+    private JButton noButton;
+    private Process runningProcess;
+
+    public JTerm() {
+        setTitle("JTerm");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        textArea = new JTextArea();
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        textArea.setBackground(Color.DARK_GRAY);
+        textArea.setForeground(Color.GREEN);
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        add(scrollPane);
+
+        commandInput = new JTextField();
+        commandInput.addActionListener(new CommandListener());
+        commandInput.setForeground(Color.GREEN);
+        commandInput.setBackground(Color.DARK_GRAY);
+
+        add(commandInput, BorderLayout.SOUTH);
+
+        systemOut = System.out;
+
+        System.setOut(new PrintStream(new ConsoleAndSwingOutputStream()));
+        System.out.println("Welcome To JTerm :3");
+
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+
+        killButton = new JButton("Kill");
+        killButton.setForeground(Color.RED);
+        killButton.setBackground(Color.DARK_GRAY);
+        killButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        GridBagConstraints gbcKillButton = new GridBagConstraints();
+        gbcKillButton.fill = GridBagConstraints.HORIZONTAL;
+        gbcKillButton.weightx = 1.0;
+        gbcKillButton.anchor = GridBagConstraints.NORTH;
+        buttonPanel.add(killButton, gbcKillButton);
+
+        clearButton = new JButton("Clear");
+        clearButton.setForeground(Color.GREEN);
+        clearButton.setBackground(Color.DARK_GRAY);
+        clearButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        GridBagConstraints gbcClearButton = new GridBagConstraints();
+        gbcClearButton.fill = GridBagConstraints.HORIZONTAL;
+        gbcClearButton.weightx = 1.0;
+        gbcClearButton.anchor = GridBagConstraints.NORTH;
+        buttonPanel.add(clearButton, gbcClearButton);
+
+        yesButton = new JButton("Yes");
+        yesButton.setForeground(Color.GREEN);
+        yesButton.setBackground(Color.DARK_GRAY);
+        yesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        GridBagConstraints gbcYesButton = new GridBagConstraints();
+        gbcYesButton.fill = GridBagConstraints.BOTH;
+        gbcYesButton.weightx = 1.0;
+        gbcYesButton.weighty = 1.0;
+        buttonPanel.add(yesButton, gbcYesButton);
+
+        noButton = new JButton("No");
+        noButton.setForeground(Color.RED);
+        noButton.setBackground(Color.DARK_GRAY);
+        noButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        GridBagConstraints gbcNoButton = new GridBagConstraints();
+        gbcNoButton.fill = GridBagConstraints.BOTH;
+        gbcNoButton.weightx = 1.0;
+        gbcNoButton.weighty = 1.0;
+        buttonPanel.add(noButton, gbcNoButton);
+
+        clearButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearOutput();
+                System.out.println("Welcome To JTerm :3");
+            }
+        });
+
+        killButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                killRunningProcess();
+            }
+        });
+
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendKeyPress("Y");
+            }
+        });
+
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendKeyPress("N");
+            }
+        });
+
+        add(buttonPanel, BorderLayout.EAST);
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.setOut(systemOut);
+            }
+        });
+    }
+
+    class CommandListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = commandInput.getText();
+            executeSystemCommand(command);
+            commandInput.setText("");
+        }
+    }
+
+    private void executeSystemCommand(String command) {
+        SwingWorker<Void, String> worker = new SwingWorker<Void, String>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try {
+                    runningProcess = Runtime.getRuntime().exec(command);
+
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(runningProcess.getInputStream()))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            publish(line);
+                            System.out.println(line);
+                        }
+                    }
+                    runningProcess.waitFor();
+                } catch (IOException | InterruptedException e) {
+                    publish("Error executing the command: " + e.getMessage());
+                    System.out.println("Error executing the command: " + e.getMessage());
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(java.util.List<String> chunks) {
+                for (String chunk : chunks) {
+                    textArea.append(chunk + "\n");
+                }
+            }
+
+            @Override
+            protected void done() {
+                commandInput.setText("");
+                runningProcess = null;
+            }
+        };
+
+        worker.execute();
+    }
+
+    private void clearOutput() {
+        textArea.setText("");
+    }
+
+    private void killRunningProcess() {
+        if (runningProcess != null) {
+            runningProcess.destroy();
+            runningProcess = null;
+        }
+    }
+
+    private void sendKeyPress(String key) {
+        if (runningProcess != null) {
+            try {
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(runningProcess.getOutputStream()));
+                writer.write(key);
+                writer.newLine();
+                writer.flush();
+            } catch (IOException e) {
+                System.out.println("Error sending keypress: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No running process to send keypress to.");
+        }
+    }
+
+    class ConsoleAndSwingOutputStream extends OutputStream {
+        @Override
+        public void write(int b) throws IOException {
+            textArea.append(String.valueOf((char) b));
+            textArea.setCaretPosition(textArea.getDocument().getLength());
+            systemOut.write(b);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JTerm runner = new JTerm();
+            runner.setVisible(true);
+        });
+    }
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move element &apos;JTerm.java&apos; to &apos;JavaTerm/src/com.blizzardfur.jterm&apos;&#x0A;- Original project: &apos;_pasted_code_&apos;&#x0A;- Destination element: &apos;JavaTerm/src/com.blizzardfur.jterm&apos;&#x0A;- Original element: &apos;com.blizzardfur.jterm.JTerm.java&apos;&#x0A;- Update references to refactored element" description="Move compilation unit" destination="=JavaTerm/src&lt;com.blizzardfur.jterm" element1="/src&lt;com.blizzardfur.jterm{JTerm.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.move" patterns="*" policy="org.eclipse.jdt.ui.moveResources" qualified="false" references="true" stamp="1697401758209" units="1" version="1.0"/>
+</session>
