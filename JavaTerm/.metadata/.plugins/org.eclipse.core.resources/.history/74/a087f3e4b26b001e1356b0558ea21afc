@@ -39,13 +39,10 @@ public class JTerm extends JFrame {
         systemOut = System.out;
 
         System.setOut(new PrintStream(new ConsoleAndSwingOutputStream()));
-        System.out.println("       ________                        _____");
-        System.out.println("      / /_  __/__  _________ ___     _|__  /");
-        System.out.println(" __  / / / / / _ \\/ ___/ __ `__ \\   (_)/_ < ");
-        System.out.println("/ /_/ / / / /  __/ /  / / / / / /  _ ___/ / ");
-        System.out.println("\\____/ /_/  \\___/_/  /_/ /_/ /_/  (_)____/  ");
-        System.out.println("Welcome To JTerm :3 made by Blizzardfur-Maxxx");
+        System.out.println("Welcome To JTerm :3");
+
         JPanel buttonPanel = new JPanel(new GridBagLayout());
+
         killButton = new JButton("Kill");
         killButton.setForeground(Color.RED);
         killButton.setBackground(Color.DARK_GRAY);
